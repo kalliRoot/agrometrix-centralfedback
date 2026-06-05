@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgroMetrix Radar — Plataforma Operacional para Pilotos Agrícolas</title>
+<meta name="description" content="AgroMetrix Radar é a plataforma operacional inteligente para pilotos de drones agrícolas. Condições climáticas em tempo real, alertas de pulverização e painel de decisão rápida.">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --gold:#c8962a;--gold-light:#f0c060;--gold-dim:#7a5a15;
+  --green:#649568;--green-dim:#149414;--green-mid:#149414;
+  --dark:#030d04;--dark2:#060f07;--dark3:#09160a;
+  --panel:#0c1d0e;--panel2:#101f12;--panel3:#142616;
+  --border:#1c3d1e;--border2:#254528;--border-gold:#3a2a08;
+  --text:#c0dfc2;--text-dim:#5e8c62;--text-muted:#3a5c3d;
+}
+html{scroll-behavior:smooth}
+body{background:var(--dark);color:var(--text);font-family:'Rajdhani',sans-serif;overflow-x:hidden}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:var(--dark2)}
+::-webkit-scrollbar-thumb{background:var(--green-dim)}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,255,30,0.012) 3px,rgba(0,255,30,0.012) 4px);pointer-events:none;z-index:9999}
+
+/* ═══ NAV ═══ */
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(3,13,4,0.95);backdrop-filter:blur(24px);border-bottom:1px solid var(--border);height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem}
+.nav-brand{display:flex;align-items:center;gap:12px;text-decoration:none}
+.nav-logo-mark{width:38px;height:38px;border:1px solid var(--green-dim);background:linear-gradient(135deg,#142616,#060f07);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:16px;font-weight:900;color:var(--gold);position:relative}
+.nav-logo-mark::after{content:'';position:absolute;bottom:-3px;right:-3px;width:8px;height:8px;border-right:1px solid var(--green-dim);border-bottom:1px solid var(--green-dim)}
+.nav-wordmark{font-family:'Orbitron',monospace;font-size:12px;letter-spacing:3px;font-weight:700}
+.nav-wordmark .w1{color:#e0e0e0}.nav-wordmark .w2{color:var(--gold-light)}
+.nav-links{display:flex;gap:2.5rem;list-style:none}
+.nav-links a{color:var(--text-dim);font-family:'Rajdhani',sans-serif;font-size:12px;letter-spacing:2.5px;text-transform:uppercase;text-decoration:none;transition:color .2s}
+.nav-links a:hover{color:var(--green)}
+.nav-right{display:flex;align-items:center;gap:1.5rem}
+.nav-status{display:flex;align-items:center;gap:7px;font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:#149414}
+.pulse{width:7px;height:7px;border-radius:50%;background:#149414;animation:pulse 1.8s infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(20,148,20,.4)}70%{opacity:.7;box-shadow:0 0 0 6px rgba(20,148,20,0)}}
+.nav-cta{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;padding:8px 16px;border:1px solid var(--gold-dim);color:var(--gold);background:transparent;cursor:pointer;text-decoration:none;transition:all .2s}
+.nav-cta:hover{border-color:var(--gold);background:rgba(200,150,42,.08)}
+
+/* ═══ HERO ═══ */
+.hero{min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;padding:64px 2rem 0}
+.hero-radar{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:900px;height:900px;pointer-events:none}
+.ring{position:absolute;top:50%;left:50%;border-radius:50%;border:1px solid;transform:translate(-50%,-50%)}
+.ring-1{width:180px;height:180px;border-color:rgba(57,255,20,.5);animation:rpulse 3s ease-in-out infinite}
+.ring-2{width:340px;height:340px;border-color:rgba(57,255,20,.3);animation:rpulse 3s ease-in-out .4s infinite}
+.ring-3{width:500px;height:500px;border-color:rgba(57,255,20,.18);animation:rpulse 3s ease-in-out .8s infinite}
+.ring-4{width:660px;height:660px;border-color:rgba(57,255,20,.1);animation:rpulse 3s ease-in-out 1.2s infinite}
+.ring-5{width:840px;height:840px;border-color:rgba(57,255,20,.05);animation:rpulse 3s ease-in-out 1.6s infinite}
+@keyframes rpulse{0%,100%{opacity:1}50%{opacity:.3}}
+.sweep{position:absolute;top:50%;left:50%;width:420px;height:1.5px;transform-origin:0 50%;animation:sweepAnim 5s linear infinite;background:linear-gradient(90deg,rgba(57,255,20,.05),rgba(57,255,20,.9));border-radius:1px}
+.sweep-trail{position:absolute;top:50%;left:50%;width:420px;height:60px;transform-origin:0 50%;animation:sweepAnim 5s linear -.3s infinite;background:conic-gradient(from 0deg, transparent, rgba(57,255,20,.06));margin-top:-30px}
+@keyframes sweepAnim{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.crossH{position:absolute;top:50%;left:50%;width:860px;height:1px;background:rgba(57,255,20,.07);transform:translate(-50%,-50%)}
+.crossV{position:absolute;top:50%;left:50%;width:1px;height:860px;background:rgba(57,255,20,.07);transform:translate(-50%,-50%)}
+.blip{position:absolute;width:6px;height:6px;border-radius:50%;background:var(--green);animation:blip 4s ease-in-out infinite}
+.blip::after{content:'';position:absolute;inset:-4px;border-radius:50%;border:1px solid var(--green);animation:blip-ring 4s ease-in-out infinite}
+@keyframes blip{0%,100%{opacity:.9}50%{opacity:.2}}
+@keyframes blip-ring{0%,100%{transform:scale(1);opacity:.6}50%{transform:scale(2);opacity:0}}
+.blip-1{top:32%;left:58%}
+.blip-2{top:65%;left:38%;animation-delay:1.2s}
+.blip-3{top:45%;left:72%;animation-delay:2.4s}
+
+.hero-inner{position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;max-width:1100px;width:100%;padding:4rem 0}
+.hero-left{}
+.h-eyebrow{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:5px;color:var(--green);margin-bottom:1.5rem;display:flex;align-items:center;gap:12px}
+.h-eyebrow::before{content:'';width:24px;height:1px;background:var(--green-dim)}
+.hero-title{font-family:'Orbitron',monospace;font-weight:900;line-height:.95;margin-bottom:.6rem}
+.hero-title .line1{font-size:clamp(2.8rem,5vw,4.5rem);color:#e8e8e8;display:block}
+.hero-title .line2{font-size:clamp(2.8rem,5vw,4.5rem);color:var(--gold-light);display:block}
+.hero-radar-tag{display:flex;align-items:center;gap:10px;margin:1rem 0 1.8rem;font-family:'Orbitron',monospace;font-size:.95rem;letter-spacing:10px;color:var(--green)}
+.wings{display:flex;align-items:center;gap:4px}
+.w{width:20px;height:1px;background:var(--green)}
+.wt{width:8px;height:1px;background:var(--green);transform-origin:right center}
+.wt.l{transform:rotate(-40deg)}
+.wt.r{transform:rotate(40deg)}
+.hero-desc{font-family:'Inter',sans-serif;font-weight:300;font-size:1rem;line-height:1.85;color:var(--text-dim);margin-bottom:2.5rem;max-width:480px}
+.hero-actions{display:flex;gap:1rem;flex-wrap:wrap}
+.btn-dl{display:inline-flex;align-items:center;gap:10px;padding:13px 22px;border:1px solid;font-family:'Rajdhani',sans-serif;font-size:13px;letter-spacing:1px;text-decoration:none;transition:all .25s;cursor:pointer}
+.btn-android{border-color:var(--green-dim);color:var(--green);background:rgba(57,255,20,.04)}
+.btn-android:hover{background:rgba(57,255,20,.1);border-color:var(--green)}
+.btn-ios{border-color:var(--gold-dim);color:var(--gold-light);background:rgba(200,150,42,.04)}
+.btn-ios:hover{background:rgba(200,150,42,.1);border-color:var(--gold)}
+.btn-dl .btn-icon{font-size:20px}
+.btn-dl .btn-text{display:flex;flex-direction:column;line-height:1.2}
+.btn-dl .btn-sub{font-size:9px;letter-spacing:1px;opacity:.7;text-transform:uppercase}
+.btn-dl .btn-main{font-size:14px;font-weight:600}
+
+/* APP MOCKUP */
+.hero-right{display:flex;justify-content:center;align-items:center}
+.app-frame{
+  width:240px;background:var(--panel);
+  border:1px solid var(--border2);
+  position:relative;overflow:hidden;
+  padding:20px 16px;
+}
+.app-frame::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--green-mid),transparent)}
+.app-corner{position:absolute;width:16px;height:16px}
+.app-corner.tl{top:0;left:0;border-top:2px solid var(--gold);border-left:2px solid var(--gold)}
+.app-corner.tr{top:0;right:0;border-top:2px solid var(--gold);border-right:2px solid var(--gold)}
+.app-corner.bl{bottom:0;left:0;border-bottom:2px solid var(--gold);border-left:2px solid var(--gold)}
+.app-corner.br{bottom:0;right:0;border-bottom:2px solid var(--gold);border-right:2px solid var(--gold)}
+.app-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.app-logo-sm{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--gold-light);font-weight:700}
+.app-time{font-family:'Orbitron',monospace;font-size:9px;color:var(--text-dim)}
+.app-radar-mini{width:100%;aspect-ratio:1;background:rgba(0,0,0,.5);border:1px solid var(--border);position:relative;margin-bottom:14px;overflow:hidden}
+.mini-ring{position:absolute;top:50%;left:50%;border-radius:50%;border:1px solid rgba(57,255,20,.25);transform:translate(-50%,-50%)}
+.mini-ring-1{width:40%;height:40%}
+.mini-ring-2{width:65%;height:65%;border-color:rgba(57,255,20,.15)}
+.mini-ring-3{width:90%;height:90%;border-color:rgba(57,255,20,.08)}
+.mini-sweep{position:absolute;top:50%;left:50%;width:50%;height:1px;transform-origin:0 50%;background:linear-gradient(90deg,transparent,rgba(57,255,20,.8));animation:sweepAnim 3s linear infinite}
+.mini-blip{position:absolute;width:4px;height:4px;border-radius:50%;background:var(--green);animation:blip 2.5s infinite}
+.mini-blip-1{top:35%;left:60%}
+.mini-blip-2{top:62%;left:30%;animation-delay:.8s}
+.app-crossh{position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(57,255,20,.08)}
+.app-crossv{position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(57,255,20,.08)}
+.app-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.app-stat{background:rgba(0,0,0,.4);border:1px solid var(--border);padding:8px 10px}
+.app-stat-lbl{font-family:'Orbitron',monospace;font-size:7px;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:3px}
+.app-stat-val{font-family:'Orbitron',monospace;font-size:14px;font-weight:700;color:var(--gold-light)}
+.app-stat-unit{font-size:7px;color:var(--text-dim);letter-spacing:1px}
+.app-alert{background:rgba(57,255,20,.06);border:1px solid rgba(57,255,20,.2);padding:8px 10px;display:flex;align-items:center;gap:8px}
+.alert-dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0;animation:pulse 1.5s infinite}
+.alert-text{font-family:'Orbitron',monospace;font-size:7px;letter-spacing:1px;color:var(--green);line-height:1.4}
+
+/* ═══ STATS STRIP ═══ */
+.stats-strip{background:var(--dark2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:2.5rem 2rem}
+.stats-inner{max-width:1100px;margin:0 auto;display:flex;justify-content:space-around;flex-wrap:wrap;gap:2rem}
+.s-item{text-align:center}
+.s-val{font-family:'Orbitron',monospace;font-size:2.2rem;font-weight:900;color:var(--gold-light);display:block;line-height:1}
+.s-lbl{font-size:11px;letter-spacing:2.5px;color:var(--text-dim);text-transform:uppercase;margin-top:6px;font-family:'Rajdhani',sans-serif}
+
+/* ═══ SECTION BASE ═══ */
+.sec{padding:7rem 2rem;max-width:1100px;margin:0 auto}
+.sec-head{text-align:center;margin-bottom:4.5rem}
+.sec-tag{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:5px;color:var(--green);margin-bottom:1rem}
+.sec-title{font-family:'Orbitron',monospace;font-size:clamp(1.8rem,3.5vw,2.5rem);font-weight:700;color:#f5f5f5}
+.sec-line{width:48px;height:2px;background:linear-gradient(90deg,var(--gold),transparent);margin:1.5rem auto 0}
+
+/* ═══ FEATURES ═══ */
+.feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1px;background:var(--border)}
+.feat-card{background:var(--panel);padding:2.5rem 2rem;transition:background .3s;position:relative;overflow:hidden}
+.feat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--green-dim),transparent);opacity:0;transition:opacity .3s}
+.feat-card:hover{background:var(--panel2)}.feat-card:hover::after{opacity:1}
+.feat-num{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:3px;color:var(--text-muted);margin-bottom:1rem}
+.feat-icon-wrap{margin-bottom:1.2rem;font-size:28px;width:52px;height:52px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;position:relative}
+.feat-icon-wrap::before{content:'';position:absolute;inset:0;background:radial-gradient(circle,rgba(57,255,20,.05),transparent)}
+.feat-card h3{font-family:'Orbitron',monospace;font-size:.8rem;letter-spacing:2px;color:#c8deca;margin-bottom:.8rem}
+.feat-card p{font-family:'Inter',sans-serif;font-weight:300;font-size:.88rem;line-height:1.75;color:var(--text-dim)}
+
+/* ═══ ROADMAP ═══ */
+.roadmap-bg{background:var(--dark2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.roadmap-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:var(--border)}
+.road-card{background:var(--panel);padding:2rem 1.5rem;position:relative}
+.road-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--gold-dim)}
+.road-icon{font-size:24px;margin-bottom:1rem}
+.road-card h4{font-family:'Orbitron',monospace;font-size:.75rem;letter-spacing:2px;color:var(--gold-light);margin-bottom:.6rem}
+.road-card p{font-family:'Inter',sans-serif;font-weight:300;font-size:.82rem;line-height:1.65;color:var(--text-dim)}
+.road-badge{display:inline-block;font-family:'Orbitron',monospace;font-size:7px;letter-spacing:2px;padding:3px 8px;border:1px solid var(--gold-dim);color:var(--gold-dim);margin-bottom:.8rem}
+
+/* ═══ TARGET ═══ */
+.target-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1.5rem}
+.target-card{background:var(--panel);border:1px solid var(--border);padding:2rem 1.5rem;text-align:center;transition:all .3s;cursor:default}
+.target-card:hover{border-color:var(--border2);background:var(--panel2)}
+.target-icon{font-size:32px;margin-bottom:1rem;display:block}
+.target-card h4{font-family:'Orbitron',monospace;font-size:.72rem;letter-spacing:2px;color:#c0dac2;margin-bottom:.5rem}
+.target-card p{font-family:'Inter',sans-serif;font-weight:300;font-size:.78rem;color:var(--text-dim);line-height:1.6}
+
+/* ═══ VIDEO ═══ */
+.video-bg{background:var(--dark2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:7rem 2rem}
+.video-wrap{max-width:900px;margin:0 auto}
+.vid-input-row{display:flex;margin-bottom:1.5rem}
+.vid-input{flex:1;background:var(--panel);border:1px solid var(--border);border-right:none;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:14px;padding:11px 16px;outline:none;transition:border-color .2s}
+.vid-input:focus{border-color:var(--green-dim)}
+.vid-input::placeholder{color:var(--text-dim)}
+.vid-load-btn{background:var(--gold);color:#050505;border:1px solid var(--gold);font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;padding:11px 18px;cursor:pointer;transition:all .2s;white-space:nowrap}
+.vid-load-btn:hover{background:var(--gold-light)}
+.vid-frame{position:relative;border:1px solid var(--border);background:var(--panel);overflow:hidden}
+.vid-frame::before{content:'';position:absolute;inset:0;border:1px solid var(--border2);pointer-events:none;z-index:1}
+.vc{position:absolute;width:18px;height:18px;z-index:2}
+.vc.tl{top:-1px;left:-1px;border-top:2px solid var(--gold);border-left:2px solid var(--gold)}
+.vc.tr{top:-1px;right:-1px;border-top:2px solid var(--gold);border-right:2px solid var(--gold)}
+.vc.bl{bottom:-1px;left:-1px;border-bottom:2px solid var(--gold);border-left:2px solid var(--gold)}
+.vc.br{bottom:-1px;right:-1px;border-bottom:2px solid var(--gold);border-right:2px solid var(--gold)}
+.vid-display{aspect-ratio:16/9;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.vid-display iframe{width:100%;height:100%;border:none}
+.vid-placeholder{display:flex;flex-direction:column;align-items:center;gap:1.2rem;color:var(--text-dim);text-align:center;padding:2rem}
+.vid-play{width:68px;height:68px;border:2px solid var(--gold-light);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;color:var(--gold-light);cursor:pointer;transition:all .3s}
+.vid-play:hover{background:rgba(200,150,42,.1);transform:scale(1.06)}
+.vid-lbl{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:3px}
+.vid-sub{font-family:'Inter',sans-serif;font-size:.82rem;font-weight:300;max-width:320px;line-height:1.6}
+
+/* ═══ COMMENTS ═══ */
+.comments-wrap{max-width:800px;margin:0 auto;padding:7rem 2rem}
+.cform{background:var(--panel);border:1px solid var(--border);padding:1.6rem;margin-bottom:3rem;position:relative;transition:border-color .2s;animation:fin .35s ease}
+.cform::after{content:'NOVO RELATO';position:absolute;top:-11px;left:24px;background:var(--dark);padding:0 12px;font-family:'Orbitron',monospace;font-size:8px;letter-spacing:3px;color:var(--green)}
+.frow{display:flex;gap:1rem;margin-bottom:1rem;flex-wrap:wrap}
+.fgroup{flex:1;min-width:180px}
+flabel,label.fl{font-family:'Orbitron',monospace;font-size:11px;letter-spacing:2px;color:#f5f5f5;display:block;margin-bottom:6px}
+input.fi,textarea.fi,select.fi{width:100%;background:var(--dark2);border:1px solid var(--border);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:16px;padding:10px 14px;outline:none;transition:border-color .2s;resize:vertical}
+input.fi:focus,textarea.fi:focus,select.fi:focus{border-color:var(--green-dim)}
+input.fi::placeholder,textarea.fi::placeholder{color:#e0e0e0}
+select.fi option{background:var(--dark2);color:#f5f5f5}
+.star-row{display:flex;align-items:center;gap:.4rem;margin-bottom:1.4rem}
+.star-row .slbl{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:#f5f5f5;margin-right:.4rem;white-space:nowrap}
+.str{font-size:22px;cursor:pointer;color:#ffffff;transition:color .12s}
+.str.on{color:var(--gold)}
+.atoggle{display:flex;align-items:center;gap:10px;margin-bottom:1.5rem;cursor:pointer;user-select:none}
+.tsw{width:40px;height:22px;background:var(--dark2);border:1px solid var(--border);border-radius:11px;position:relative;transition:background .2s;flex-shrink:0}
+.tsw.on{background:var(--green-dim);border-color:var(--green-dim)}
+.tknob{position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:var(--text-dim);transition:all .2s}
+.tsw.on .tknob{left:21px;background:var(--green)}
+.albl{font-family:'Rajdhani',sans-serif;font-size:14px;letter-spacing:.5px;color:var(--text-dim)}
+.sbtn{font-family:'Orbitron',monospace;font-size:12px;letter-spacing:3px;padding:12px 26px;background:transparent;border:1px solid var(--green-dim);color:#ffffff;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:8px}
+.sbtn:hover{background:rgba(57,255,20,.06);border-color:var(--green)}
+.clist{display:flex;flex-direction:column;gap:1.5rem}
+.ccard{background:var(--panel);border:1px solid var(--border);padding:1.6rem;transition:border-color .2s;animation:fin .35s ease}
+@keyframes fin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.ccard:hover{border-color:var(--border2)}
+.chead{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem}
+.cuser{display:flex;align-items:center;gap:10px}
+.cavatar{width:36px;height:36px;border-radius:50%;background:var(--dark2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:var(--gold);flex-shrink:0}
+.uname{font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:600;color:#cce0ce}
+.urole{font-size:11px;letter-spacing:.5px;color:var(--text-dim)}
+.cmeta{display:flex;gap:.4rem;align-items:center;flex-wrap:wrap}
+.ctag{font-family:'Orbitron',monospace;font-size:7.5px;letter-spacing:2px;padding:3px 8px;border:1px solid}
+.ctag.elogio{border-color:rgba(57,255,20,.3);color:#2db309}
+.ctag.critica{border-color:rgba(200,150,42,.3);color:var(--gold)}
+.ctag.sugestao{border-color:rgba(100,140,240,.3);color:#8ab4f8}
+.ctag.anon{border-color:var(--border);color:var(--text-dim)}
+.cstars{color:var(--gold);font-size:12px;letter-spacing:.5px}
+.cbody{font-family:'Inter',sans-serif;font-weight:300;font-size:.92rem;line-height:1.8;color:var(--text)}
+.cdate{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:1px;color:var(--text-dim);margin-top:.8rem}
+
+/* ═══ DOWNLOAD CTA ═══ */
+.dl-section{background:var(--dark2);border-top:1px solid var(--border);padding:7rem 2rem;text-align:center}
+.dl-inner{max-width:680px;margin:0 auto}
+.dl-tag{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:5px;color:var(--green);margin-bottom:1.2rem}
+.dl-title{font-family:'Orbitron',monospace;font-size:clamp(1.8rem,3.5vw,2.6rem);font-weight:900;color:#e8e8e8;margin-bottom:1rem;line-height:1.1}
+.dl-title span{color:var(--gold-light)}
+.dl-sub{font-family:'Inter',sans-serif;font-weight:300;font-size:1rem;color:var(--text-dim);margin-bottom:3rem;line-height:1.7}
+.dl-btns{display:flex;gap:1.2rem;justify-content:center;flex-wrap:wrap}
+
+/* ═══ FOOTER ═══ */
+footer{background:var(--dark);border-top:1px solid var(--border);padding:3.5rem 2rem;text-align:center}
+.ft-logo{font-family:'Orbitron',monospace;font-size:20px;font-weight:900;margin-bottom:.4rem}
+.ft-logo .fa{color:#e0e0e0}.ft-logo .fm{color:var(--gold-light)}
+.ft-radar{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:6px;color:var(--green);margin-bottom:1.5rem;display:flex;align-items:center;justify-content:center;gap:8px}
+.ft-radar::before,.ft-radar::after{content:'';width:24px;height:1px;background:var(--green-dim)}
+.ft-text{font-family:'Inter',sans-serif;font-weight:300;font-size:.78rem;color:var(--text-dim);letter-spacing:.5px}
+
+/* ═══ HUD DECO ═══ */
+.hud{position:fixed;pointer-events:none;z-index:100}
+.hud.bl{bottom:18px;left:18px;font-family:'Orbitron',monospace;font-size:8px;letter-spacing:2px;color:var(--green-dim);line-height:1.7}
+.hud.br{bottom:18px;right:18px;font-family:'Orbitron',monospace;font-size:8px;letter-spacing:1px;color:var(--text-muted);text-align:right;line-height:1.7}
+
+/* ═══ DIVIDER ═══ */
+.divider{max-width:1100px;margin:0 auto;border:none;border-top:1px solid var(--border)}
+
+@media(max-width:768px){
+  .nav-links,.nav-cta{display:none}
+  .hero-inner{grid-template-columns:1fr;text-align:center;gap:3rem}
+  .hero-right{display:none}
+  .h-eyebrow{justify-content:center}
+  .hero-actions{justify-content:center}
+  .hero-radar-tag{justify-content:center}
+}
+</style>
+</head>
+<body>
+
+<!-- HUD -->
+<div class="hud bl">LAT -22.6628<br>LNG -50.4138<br>ALT 512m</div>
+<div class="hud br">SYS v3.7.2<br>DRONES 4/4<br>SAT OK</div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-brand">
+    <div class="nav-logo-mark">A</div>
+    <div class="nav-wordmark"><span class="w1">AGRO</span><span class="w2">METRIX</span></div>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#funcionalidades">Funcionalidades</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+    <li><a href="#tutorial">Tutorial</a></li>
+    <li><a href="#relatos">Relatos</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="nav-status"><div class="pulse"></div>RADAR ONLINE</div>
+    <a href="https://play.google.com/store/apps/details?id=com.agrometrix.radar&hl=pt" target="_blank" class="nav-cta">BAIXAR APP</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(26,122,6,0.13) 0%,transparent 65%);pointer-events:none"></div>
+  <div class="hero-radar" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)">
+    <div class="ring ring-1"></div><div class="ring ring-2"></div>
+    <div class="ring ring-3"></div><div class="ring ring-4"></div><div class="ring ring-5"></div>
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)">
+      <div class="sweep-trail"></div>
+      <div class="sweep"></div>
+    </div>
+    <div class="crossH"></div><div class="crossV"></div>
+    <div class="blip blip-1"></div><div class="blip blip-2"></div><div class="blip blip-3"></div>
+  </div>
+
+  <div class="hero-inner">
+    <div class="hero-left">
+      <div class="h-eyebrow">PLATAFORMA OPERACIONAL INTELIGENTE</div>
+      <h1 class="hero-title">
+        <span class="line1">AGRO</span>
+        <span class="line2">METRIX</span>
+      </h1>
+      <div class="hero-radar-tag">
+        <div class="wings"><div class="w"></div><div class="wt l"></div></div>
+        RADAR
+        <div class="wings"><div class="wt r"></div><div class="w"></div></div>
+      </div>
+      <p class="hero-desc">A plataforma que centraliza tudo que um piloto de drone agrícola precisa em campo: clima em tempo real, alertas de pulverização e painel de decisão rápida — na palma da mão.</p>
+      <div class="hero-actions">
+        <a href="https://play.google.com/store/apps/details?id=com.agrometrix.radar&hl=pt" target="_blank" class="btn-dl btn-android">
+          <span class="btn-icon">🤖</span>
+          <div class="btn-text"><span class="btn-sub">Disponível no</span><span class="btn-main">Google Play</span></div>
+        </a>
+        <a href="https://agrometrix-one.vercel.app/" target="_blank" class="btn-dl btn-ios">
+          <span class="btn-icon">🍎</span>
+          <div class="btn-text"><span class="btn-sub">Disponível para</span><span class="btn-main">iPhone / Web</span></div>
+        </a>
+      </div>
+    </div>
+
+    <div class="hero-right">
+      <div class="app-frame">
+        <div class="app-corner tl"></div><div class="app-corner tr"></div>
+        <div class="app-corner bl"></div><div class="app-corner br"></div>
+        <div class="app-header">
+          <div class="app-logo-sm">AGROMETRIX</div>
+          <div class="app-time" id="appClock">--:--</div>
+        </div>
+        <div class="app-radar-mini">
+          <div class="app-crossh"></div><div class="app-crossv"></div>
+          <div class="mini-ring mini-ring-1"></div>
+          <div class="mini-ring mini-ring-2"></div>
+          <div class="mini-ring mini-ring-3"></div>
+          <div class="mini-sweep"></div>
+          <div class="mini-blip mini-blip-1"></div>
+          <div class="mini-blip mini-blip-2"></div>
+        </div>
+        <div class="app-stat-grid">
+          <div class="app-stat">
+            <div class="app-stat-lbl">VENTO</div>
+            <div class="app-stat-val">12<span class="app-stat-unit"> km/h</span></div>
+          </div>
+          <div class="app-stat">
+            <div class="app-stat-lbl">UMIDADE</div>
+            <div class="app-stat-val">68<span class="app-stat-unit"> %</span></div>
+          </div>
+          <div class="app-stat">
+            <div class="app-stat-lbl">TEMP</div>
+            <div class="app-stat-val">24<span class="app-stat-unit"> °C</span></div>
+          </div>
+          <div class="app-stat">
+            <div class="app-stat-lbl">DIREÇÃO</div>
+            <div class="app-stat-val" style="font-size:12px">NNE</div>
+          </div>
+        </div>
+        <div class="app-alert">
+          <div class="alert-dot"></div>
+          <div class="alert-text">CONDIÇÕES FAVORÁVEIS<br>PARA PULVERIZAÇÃO</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-strip">
+  <div class="stats-inner">
+    <div class="s-item"><span class="s-val">+40%</span><div class="s-lbl">Eficiência operacional</div></div>
+    <div class="s-item"><span class="s-val">Real</span><div class="s-lbl">Dados em tempo real</div></div>
+    <div class="s-item"><span class="s-val">5</span><div class="s-lbl">Variáveis climáticas</div></div>
+    <div class="s-item"><span class="s-val">0</span><div class="s-lbl">Risco de voo evitável</div></div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- COMMENTS -->
+<div class="comments-wrap" id="relatos">
+  <div class="sec-head" style="margin-bottom:3rem">
+    <div class="sec-tag">// FEEDBACK</div>
+    <h2 class="sec-title">AGROMETRIX CENTRAL DE FEEDBACK</h2>
+    <p style="font-family:'Inter',sans-serif;font-weight:300;font-size:0.95rem;color:var(--text-dim);margin-top:1rem;line-height:1.7">Deixe sua opinião, sugestões e relatos. Sua participação é fundamental para evoluirmos juntos.</p>
+    <div class="sec-line"></div>
+  </div>
+
+  <div class="cform">
+    <div class="frow">
+      <div class="fgroup" id="nameGroup">
+        <label class="fl">SEU NOME</label>
+        <input type="text" class="fi" id="userName" placeholder="Como quer ser identificado...">
+      </div>
+      <div class="fgroup">
+        <label class="fl">TIPO DE RELATO</label>
+        <select class="fi" id="commentType">
+          <option value="elogio">⭐ Elogio</option>
+          <option value="critica">⚠ Crítica</option>
+          <option value="sugestao">💡 Sugestão</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="atoggle" onclick="toggleAnon()">
+      <div class="tsw" id="anonSwitch"></div>
+      <span class="albl" id="anonLabel">Identificar-me no relato</span>
+    </div>
+
+    <div style="margin-bottom:1.2rem">
+      <label class="fl">AVALIAÇÃO</label>
+      <div class="star-row">
+        <span class="slbl">NOTA</span>
+        <span class="str" data-v="1" onclick="setRating(1)">★</span>
+        <span class="str" data-v="2" onclick="setRating(2)">★</span>
+        <span class="str" data-v="3" onclick="setRating(3)">★</span>
+        <span class="str" data-v="4" onclick="setRating(4)">★</span>
+        <span class="str" data-v="5" onclick="setRating(5)">★</span>
+      </div>
+    </div>
+
+    <div class="frow">
+      <div class="fgroup">
+        <label class="fl">O CLIMA ERA PRECISO?</label>
+        <select class="fi" id="climateAccuracy">
+          <option value="">— Selecione —</option>
+          <option value="sim">✓ Sim, dados bateram</option>
+          <option value="nao">✗ Não, dados divergiram</option>
+        </select>
+      </div>
+      <div class="fgroup" id="regionGroup" style="display:none;opacity:0;transition:opacity .3s">
+        <label class="fl">QUAL SUA REGIÃO?</label>
+        <input type="text" class="fi" id="userRegion" placeholder="Ex: Mato Grosso, interior de SP...">
+      </div>
+    </div>
+
+    <div style="margin-bottom:1.5rem">
+      <label class="fl">SEU RELATO</label>
+      <textarea class="fi" id="commentText" rows="4" placeholder="Compartilhe sua experiência com o AgroMetrix Radar — o que funcionou, o que pode melhorar, suas sugestões para o app..."></textarea>
+    </div>
+
+    <button class="sbtn" onclick="submitComment()"><span>⬡</span> ENVIAR RELATO</button>
+  </div>
+
+  <div class="clist" id="commentsList"></div>
+</div>
+
+<!-- DOWNLOAD CTA -->
+<div class="dl-section">
+  <div class="dl-inner">
+    <div class="dl-tag">// BAIXE AGORA</div>
+    <h2 class="dl-title">O CAMPO NÃO<br>ESPERA.<span> VOCÊ TAMBÉM NÃO.</span></h2>
+    <p class="dl-sub">Disponível gratuitamente para Android e também acessível via navegador para iPhone. Leve o radar agrícola para sua próxima operação.</p>
+    <div class="dl-btns">
+      <a href="https://play.google.com/store/apps/details?id=com.agrometrix.radar&hl=pt" target="_blank" class="btn-dl btn-android">
+        <span class="btn-icon">🤖</span>
+        <div class="btn-text"><span class="btn-sub">Disponível no</span><span class="btn-main">Google Play</span></div>
+      </a>
+      <a href="https://agrometrix-one.vercel.app/" target="_blank" class="btn-dl btn-ios">
+        <span class="btn-icon">🍎</span>
+        <div class="btn-text"><span class="btn-sub">Acesse pelo</span><span class="btn-main">iPhone / Web</span></div>
+      </a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="ft-logo"><span class="fa">AGRO</span><span class="fm">METRIX</span></div>
+  <div class="ft-radar">RADAR</div>
+  <p class="ft-text">© 2025 AgroMetrix · Tecnologia a serviço do piloto agrícola brasileiro</p>
+</footer>
+
+<script>
+// Clock
+function updateClock(){var n=new Date(),h=String(n.getHours()).padStart(2,'0'),m=String(n.getMinutes()).padStart(2,'0');document.getElementById('appClock').textContent=h+':'+m}
+updateClock();setInterval(updateClock,1000);
+
+// Comments
+var rating=0,isAnon=false,climateAccuracy='';
+document.getElementById('climateAccuracy').addEventListener('change',function(){
+  climateAccuracy=this.value;
+  var rg=document.getElementById('regionGroup'),ur=document.getElementById('userRegion');
+  if(this.value==='nao'){rg.style.display='block';setTimeout(function(){rg.style.opacity='1'},10);ur.required=true}
+  else{rg.style.opacity='0';setTimeout(function(){rg.style.display='none'},300);ur.required=false;ur.value=''}
+});
+var demo=[
+  {name:"Carlos Mendonça",role:"Piloto Agrícola — MT",type:"elogio",rating:5,text:"Uso o AgroMetrix Radar em todas as operações de pulverização. O alerta de condições favoráveis me poupou de três aplicações erradas em uma semana de vento inconstante. App essencial no campo.",anon:false,date:"18 MAI 2025"},
+  {name:"Anônimo",role:"Operador de Pulverização",type:"critica",rating:3,text:"O app é muito bom no que propõe, mas sinto falta de uma historicidade das condições — conseguir ver como estava o vento nas últimas 6 horas ajudaria muito no planejamento diário.",anon:true,date:"09 MAI 2025"},
+  {name:"Fernanda Alves",role:"Técnica Agrícola — GO",type:"sugestao",rating:4,text:"Seria incrível ter integração com a previsão por talhão — cada gleba tem comportamento de vento diferente. Fora isso o app é muito sólido, interface limpa e rápida mesmo com 4G fraco.",anon:false,date:"02 MAI 2025"}
+];
+function renderComments(list){
+  var el=document.getElementById('commentsList');el.innerHTML='';
+  list.forEach(function(c){
+    var s='';for(var i=1;i<=5;i++)s+=i<=c.rating?'★':'☆';
+    var ini=c.anon?'?':c.name.split(' ').map(function(w){return w[0]}).join('').substring(0,2).toUpperCase();
+    var tl={elogio:'ELOGIO',critica:'CRÍTICA',sugestao:'SUGESTÃO'}[c.type]||c.type.toUpperCase();
+    var climateTag=c.climate?'<span class="ctag '+('sim'===c.climate?'elogio':'critica')+'">CLIMA '+(c.climate==='sim'?'PRECISO':'DIVERGENTE')+'</span>':'';
+    el.innerHTML+='<div class="ccard"><div class="chead"><div class="cuser"><div class="cavatar">'+ini+'</div><div><div class="uname">'+(c.anon?'Usuário Anônimo':c.name)+'</div><div class="urole">'+c.role+'</div></div></div><div class="cmeta"><span class="ctag '+c.type+'">'+tl+'</span>'+climateTag+(c.anon?'<span class="ctag anon">ANÔNIMO</span>':'')+'<span class="cstars">'+s+'</span></div></div><div class="cbody">'+c.text+'</div>'+(c.region?'<div style="margin-top:.8rem;padding-top:.8rem;border-top:1px solid rgba(100,149,100,.2);font-size:.78rem;color:var(--text-muted)">📍 <strong>Região:</strong> '+c.region+'</div>':'')+'<div class="cdate">'+c.date+'</div></div>';
+  });
+}
+renderComments(demo);
+
+function toggleAnon(){
+  isAnon=!isAnon;
+  var sw=document.getElementById('anonSwitch'),lb=document.getElementById('anonLabel'),ng=document.getElementById('nameGroup');
+  if(isAnon){sw.classList.add('on');lb.textContent='Publicar como anônimo';ng.style.opacity='.3';ng.style.pointerEvents='none'}
+  else{sw.classList.remove('on');lb.textContent='Identificar-me no relato';ng.style.opacity='1';ng.style.pointerEvents='auto'}
+}
+function setRating(v){
+  rating=v;
+  document.querySelectorAll('.str').forEach(function(s){s.classList.toggle('on',parseInt(s.dataset.v)<=v)});
+}
+function submitComment(){
+  var t=document.getElementById('commentText').value.trim(),ca=document.getElementById('climateAccuracy').value,ur=document.getElementById('userRegion').value.trim();
+  if(!t){var el=document.getElementById('commentText');el.style.borderColor='rgba(200,80,80,.5)';setTimeout(function(){el.style.borderColor=''},1500);return}
+  if(!ca){var el=document.getElementById('climateAccuracy');el.style.borderColor='rgba(200,80,80,.5)';setTimeout(function(){el.style.borderColor=''},1500);return}
+  if(ca==='nao'&&!ur){var el=document.getElementById('userRegion');el.style.borderColor='rgba(200,80,80,.5)';setTimeout(function(){el.style.borderColor=''},1500);return}
+  var n=document.getElementById('userName').value.trim()||'Usuário',tp=document.getElementById('commentType').value,climateNote=ca==='sim'?'Dados precisos':'Dados divergentes - '+ur;
+  var now=new Date(),mo=['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
+  demo.unshift({name:n,role:'Usuário AgroMetrix',type:tp,rating:rating||5,text:t,anon:isAnon,climate:ca,region:ur,climateNote:climateNote,date:now.getDate()+' '+mo[now.getMonth()]+' '+now.getFullYear()});
+  renderComments(demo);
+  document.getElementById('commentText').value='';document.getElementById('userName').value='';document.getElementById('climateAccuracy').value='';document.getElementById('userRegion').value='';
+  setRating(0);if(isAnon)toggleAnon();var rg=document.getElementById('regionGroup');rg.style.opacity='0';setTimeout(function(){rg.style.display='none'},300);
+  document.getElementById('commentsList').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function loadVideo(){
+  var url=document.getElementById('videoUrl').value.trim();if(!url)return;
+  var em='',yt=url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([A-Za-z0-9_-]{11})/),vm=url.match(/vimeo\.com\/(\d+)/);
+  if(yt)em='https://www.youtube.com/embed/'+yt[1]+'?autoplay=1&modestbranding=1&color=white';
+  else if(vm)em='https://player.vimeo.com/video/'+vm[1]+'?autoplay=1&color=c8962a';
+  if(em){document.getElementById('videoDisplay').innerHTML='<iframe src="'+em+'" allowfullscreen allow="autoplay"></iframe>'}
+  else{var i=document.getElementById('videoUrl');i.style.borderColor='rgba(200,80,80,.5)';setTimeout(function(){i.style.borderColor=''},1500)}
+}
+</script>
+</body>
+</html>
